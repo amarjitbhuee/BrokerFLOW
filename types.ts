@@ -1,6 +1,7 @@
 
 export type UserRole = 'AGENT' | 'TEAM_LEADER' | 'BROKER' | 'ADMIN' | 'READ_ONLY';
 export type ListingStatus = 'ACTIVE' | 'PENDING' | 'ARCHIVED';
+export type ListingType = 'SALE' | 'LEASE';
 export type DealStatus = 'OPEN' | 'CLOSED' | 'CANCELLED';
 export type DealType = 'BUYER' | 'SELLER';
 
@@ -33,6 +34,13 @@ export interface Listing {
   address: string;
   property_type: string;
   status: ListingStatus;
+  listing_type: ListingType;
+  price?: number;
+  listing_date?: string;
+  expiration_date?: string;
+  seller_name?: string;
+  seller_contact?: string;
+  image_url?: string;
   created_at: string;
 }
 

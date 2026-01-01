@@ -1,36 +1,32 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   TrendingUp, 
-  DollarSign, 
   Calculator, 
   Plus, 
-  ArrowUpRight, 
-  ArrowDownRight,
   PieChart
 } from 'lucide-react';
-import { Budget, Expense, ExpenseCategory } from '../types.ts';
+import { Expense } from '../types.ts';
 
-const Finances: React.FC = () => {
-  const [budget, setBudget] = useState<Budget>({
-    year: 2024,
-    incomeTarget: 200000,
-    expenseCap: 25000
-  });
+interface FinancesProps {
+  expenses: Expense[];
+  setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
+  incomeTarget: number;
+  setIncomeTarget: (val: number) => void;
+  expenseCap: number;
+  setExpenseCap: (val: number) => void;
+}
 
-  const [expenses, setExpenses] = useState<Expense[]>([
-    { id: 'e1', category: 'Photography', amount: 350, description: 'Listing photos for Maple Dr', date: '2024-05-12', created_at: '2024-05-12' },
-    { id: 'e2', category: 'Marketing', amount: 1200, description: 'Facebook Ad Campaign Q2', date: '2024-05-15', created_at: '2024-05-15' },
-    { id: 'e3', category: 'Software', amount: 99, description: 'Monthly CRM Subscription', date: '2024-05-18', created_at: '2024-05-18' },
-  ]);
-
-  const [actualIncome] = useState(145000); // Mock data
+const Finances: React.FC<FinancesProps> = ({ 
+  expenses, setExpenses, incomeTarget, setIncomeTarget, expenseCap, setExpenseCap 
+}) => {
   const totalExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const actualIncome = 0; // In a full app, this comes from closed deals' net commission sum
 
   const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
   const ProgressBar = ({ current, target, color }: { current: number, target: number, color: string }) => {
-    const percentage = Math.min((current / target) * 100, 100);
+    const percentage = target > 0 ? Math.min((current / target) * 100, 100) : 0;
     return (
       <div className="w-full bg-slate-100 rounded-full h-2.5 mt-2">
         <div 
@@ -41,21 +37,38 @@ const Finances: React.FC = () => {
     );
   };
 
+  const handleAddExpense = () => {
+    const amount = prompt("Expense Amount:");
+    const desc = prompt("Description:");
+    if (amount && desc) {
+      const newExp: Expense = {
+        id: `e-${Date.now()}`,
+        amount: parseFloat(amount),
+        description: desc,
+        category: 'Marketing',
+        date: new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString()
+      };
+      setExpenses(prev => [...prev, newExp]);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Finances & Budgeting</h2>
-          <p className="text-slate-500">Track your business performance and yearly targets.</p>
+          <p className="text-slate-500">Manage your business targets and overhead.</p>
         </div>
-        <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
+        <button 
+          onClick={handleAddExpense}
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
+        >
           <Plus className="h-4 w-4" /> Add Expense
         </button>
       </div>
 
-      {/* Budget Summary Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Income Target */}
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-emerald-50 rounded-lg">
@@ -63,8 +76,8 @@ const Finances: React.FC = () => {
             </div>
             <button 
               onClick={() => {
-                const newTarget = prompt("Enter new Yearly Income Target:", budget.incomeTarget.toString());
-                if (newTarget) setBudget({ ...budget, incomeTarget: parseFloat(newTarget) });
+                const newTarget = prompt("Enter new Yearly Income Target:", incomeTarget.toString());
+                if (newTarget) setIncomeTarget(parseFloat(newTarget));
               }}
               className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
             >
@@ -74,15 +87,14 @@ const Finances: React.FC = () => {
           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Yearly Income Target</h3>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-900">{fmt.format(actualIncome)}</span>
-            <span className="text-slate-400 font-medium text-sm">/ {fmt.format(budget.incomeTarget)}</span>
+            <span className="text-slate-400 font-medium text-sm">/ {fmt.format(incomeTarget)}</span>
           </div>
-          <ProgressBar current={actualIncome} target={budget.incomeTarget} color="bg-emerald-500" />
+          <ProgressBar current={actualIncome} target={incomeTarget} color="bg-emerald-500" />
           <p className="mt-2 text-xs text-slate-400 font-medium">
-            {Math.round((actualIncome / budget.incomeTarget) * 100)}% of goal reached
+            {incomeTarget > 0 ? Math.round((actualIncome / incomeTarget) * 100) : 0}% of goal reached
           </p>
         </div>
 
-        {/* Expense Cap */}
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-rose-50 rounded-lg">
@@ -90,8 +102,8 @@ const Finances: React.FC = () => {
             </div>
             <button 
               onClick={() => {
-                const newCap = prompt("Enter new Yearly Expense Cap:", budget.expenseCap.toString());
-                if (newCap) setBudget({ ...budget, expenseCap: parseFloat(newCap) });
+                const newCap = prompt("Enter new Yearly Expense Cap:", expenseCap.toString());
+                if (newCap) setExpenseCap(parseFloat(newCap));
               }}
               className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
             >
@@ -101,22 +113,19 @@ const Finances: React.FC = () => {
           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Yearly Expense Cap</h3>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-900">{fmt.format(totalExpenses)}</span>
-            <span className="text-slate-400 font-medium text-sm">/ {fmt.format(budget.expenseCap)}</span>
+            <span className="text-slate-400 font-medium text-sm">/ {fmt.format(expenseCap)}</span>
           </div>
-          <ProgressBar current={totalExpenses} target={budget.expenseCap} color="bg-rose-500" />
+          <ProgressBar current={totalExpenses} target={expenseCap} color="bg-rose-500" />
           <p className="mt-2 text-xs text-slate-400 font-medium">
-            {Math.round((totalExpenses / budget.expenseCap) * 100)}% of cap utilized
+            {expenseCap > 0 ? Math.round((totalExpenses / expenseCap) * 100) : 0}% of cap utilized
           </p>
         </div>
       </div>
 
-      {/* Expense List */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900">Recent Expenses</h3>
-          <div className="flex gap-2">
-            <span className="text-xs font-semibold text-slate-400">Total: {fmt.format(totalExpenses)}</span>
-          </div>
+          <h3 className="font-bold text-slate-900">Expense Ledger</h3>
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Total: {fmt.format(totalExpenses)}</span>
         </div>
         <div className="divide-y divide-slate-50">
           {expenses.map((expense) => (
@@ -135,12 +144,18 @@ const Finances: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-black text-slate-900">{fmt.format(expense.amount)}</p>
-                <button className="text-[10px] font-bold text-rose-600 hover:underline">Remove</button>
+                <button 
+                  onClick={() => setExpenses(prev => prev.filter(e => e.id !== expense.id))}
+                  className="text-[10px] font-bold text-rose-600 hover:underline"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           ))}
           {expenses.length === 0 && (
-            <div className="py-20 text-center">
+            <div className="py-20 text-center bg-slate-50/50">
+              <Calculator className="h-12 w-12 text-slate-200 mx-auto mb-2" />
               <p className="text-slate-400 font-medium">No expenses recorded yet.</p>
             </div>
           )}

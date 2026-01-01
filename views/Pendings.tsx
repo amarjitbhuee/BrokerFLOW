@@ -6,37 +6,11 @@ import { Profile, Escrow } from '../types.ts';
 
 interface PendingsProps {
   user: Profile;
+  pendings: Escrow[];
 }
 
-const Pendings: React.FC<PendingsProps> = ({ user }) => {
+const Pendings: React.FC<PendingsProps> = ({ user, pendings }) => {
   const navigate = useNavigate();
-  // Fixed: Added representing, deposit_received, and contingencies for Escrow compliance
-  const mockPendings: Escrow[] = [
-    { 
-      id: 'p1', 
-      agent_id: 'agent-123', 
-      address: '123 Ocean View Dr', 
-      deal_type: 'SELLER', 
-      status: 'OPEN', 
-      close_date: '2023-11-15', 
-      created_at: '2023-10-05',
-      representing: 'SELLER',
-      deposit_received: true,
-      contingencies: []
-    },
-    { 
-      id: 'p2', 
-      agent_id: 'agent-123', 
-      address: '99 Mountain Pass', 
-      deal_type: 'BUYER', 
-      status: 'CLOSED', 
-      close_date: '2023-10-20', 
-      created_at: '2023-09-15',
-      representing: 'BUYER',
-      deposit_received: true,
-      contingencies: []
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -51,7 +25,7 @@ const Pendings: React.FC<PendingsProps> = ({ user }) => {
       </div>
 
       <div className="space-y-4">
-        {mockPendings.map((pending) => (
+        {pendings.map((pending) => (
           <div 
             key={pending.id} 
             onClick={() => navigate(`/pendings/${pending.id}`)}
@@ -87,8 +61,10 @@ const Pendings: React.FC<PendingsProps> = ({ user }) => {
 
             <div className="flex items-center gap-6">
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Est. Net</p>
-                <p className="text-lg font-bold text-emerald-600">$12,450.00</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Deposit Status</p>
+                <p className={`text-sm font-bold ${pending.deposit_received ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {pending.deposit_received ? 'Received' : 'Awaiting'}
+                </p>
               </div>
               <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <ArrowRight className="h-5 w-5" />
@@ -96,6 +72,12 @@ const Pendings: React.FC<PendingsProps> = ({ user }) => {
             </div>
           </div>
         ))}
+        {pendings.length === 0 && (
+          <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+             <Handshake className="h-12 w-12 text-slate-200 mx-auto mb-2" />
+             <p className="text-slate-400 font-medium">No pending escrows found.</p>
+          </div>
+        )}
       </div>
     </div>
   );

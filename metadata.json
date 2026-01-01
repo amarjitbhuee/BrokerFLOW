@@ -1,0 +1,7 @@
+{
+  "name": "PropTrack Pro - Real Estate Transaction Suite",
+  "description": "A production-ready real estate transaction management system featuring automated commission parsing, expense tracking, and role-based access control for high-performance agents and teams.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
